@@ -1,2 +1,5 @@
 *.swp
+.cache/
 venv/
+__pycache__/
+.tox/
