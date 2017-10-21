@@ -1,4 +1,4 @@
-import psycopg2
+import psycopg2.extras
 import handler
 import schema
 
@@ -31,4 +31,4 @@ class PgTq(object):
                                                 'kwargs': kwargs})
         with self.conn:
             with self.conn.cursor() as cursor:
-                cursor.execute(sql, serialised_task)
+                cursor.execute(sql, [serialised_task])

@@ -30,3 +30,13 @@ def test_can_call_handler_directly(db):
         return a + b
 
     assert test_handler(2, 3) == 5
+
+
+def test_can_push_task(db):
+    q = pgtq.PgTq('q', db.url())
+
+    @q.handler()
+    def test_handler(a, b):
+        return a + b
+
+    test_handler.push(2, 3)

@@ -10,7 +10,7 @@ CREATE INDEX IF NOT EXISTS
   ix_pgtq_{0}_scheduled_not_before ON pgtq_{0}_scheduled (not_before);
 
 CREATE TABLE IF NOT EXISTS pgtq_{0}_runnable (
-  key INTEGER PRIMARY KEY,
+  key SERIAL PRIMARY KEY,
   task JSON,
   retried INTEGER DEFAULT 0
 );
