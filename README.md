@@ -18,15 +18,22 @@ Create a task queue:
     q = pgtq.PgTq('test_queue', "dbname=q user=postgres") 
 
 A *Handler* is a function that can perform the work of completing
-a given *Task*. You can create one with the `handler` decorator provided
+a given *task*. You can create one with the `handler` decorator provided
 by the queue:
 
     @q.handler()
     def add_numbers(a, b):
         return a + b
 
-`compute_meaning_of_life` is now a Handler, but it still can be called
+`add_numbers` is now a Handler, but it still can be called
 directly. This will run immediately, blocking the current thread, and
 without going through the task queue:
 
-    add_numbers(a, b)
+    add_numbers(2, 3)
+
+Alternatively, you can push a *task* into the queue:
+
+    add_numbers.push(2, 3)
+
+This will return immediately without computing the result. As soon as possible,
+a worker process should remove the task from the queue and process it.
