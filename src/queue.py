@@ -8,6 +8,7 @@ class PgTq(object):
     def __init__(self, name, connection_string):
         self.name = name
         self.conn = psycopg2.connect(connection_string)
+        self.create_tables()
 
     def create_tables(self):
         sql = schema.sql_template.format(self.name)
