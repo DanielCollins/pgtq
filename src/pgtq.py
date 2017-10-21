@@ -21,7 +21,7 @@ class PgTq(object):
 
     def push(self, handler_name, args, kwargs):
         sql_template = """
-           INSERT INTO pgtq_{1}_runnable (task) VALUES (%s);
+           INSERT INTO pgtq_{0}_runnable (task) VALUES (%s);
         """
         sql = sql_template.format(self.name)
         serialised_task = psycopg2.extras.Json({'name': handler_name,
