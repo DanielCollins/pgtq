@@ -16,8 +16,10 @@ class PgTq(object):
             with self.conn.cursor() as cursor:
                 cursor.execute(sql)
 
-    def handler(self, procedure):
-        return handler.Handler(self, procedure)
+    def handler(self):
+        def decorator(procedure):
+            return handler.Handler(self, procedure)
+        return decorator
 
     def push(self, handler_name, args, kwargs):
         sql_template = """

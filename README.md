@@ -17,3 +17,11 @@ Create a task queue:
      
     q = pgtq.PgTq('test_queue', "dbname=q user=postgres") 
 
+A *Handler* is a function that can perform the work of completing
+a given *Task*. You can create one with the `handler` decorator provided
+by the queue:
+
+    @q.handler()
+    def compute_meaning_of_life():
+        # ... lots of slow to finish work goes here ...
+        return 42
