@@ -1,4 +1,5 @@
 import pytest
+import psycopg2
 import testing.postgresql
 import pgtq
 
@@ -40,3 +41,10 @@ def test_can_push_task(db):
         return a + b
 
     test_handler.push(2, 3)
+
+    conn = psycopg2.connect(db.url())
+    sql = "SELECT count(*) FROM pgtq_q_runnable;"
+    with conn:
+        with conn.cursor() as cur:
+            cur.execute(sql)
+            assert cur.fetchone()[0] == 1
