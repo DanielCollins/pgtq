@@ -67,6 +67,7 @@ PREPARE pgtq_{1}_run_scheduled AS
   INSERT INTO pgtq_{1}_runnable(key) SELECT key FROM ready RETURNING *;
 """
 
+
 class PgTq(object):
 
     def __init__(self, name, connection_string):
@@ -76,5 +77,5 @@ class PgTq(object):
     def create_tables(self):
         sql = sql_template.format(self.name)
         with self.conn:
-            with conn.cursor() as cursor:
-                cur.execute(sql)
+            with self.conn.cursor() as cursor:
+                cursor.execute(sql)
