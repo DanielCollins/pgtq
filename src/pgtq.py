@@ -1,3 +1,4 @@
+import select
 import psycopg2.extras
 import handler
 import schema
@@ -7,6 +8,7 @@ class PgTq(object):
 
     def __init__(self, name, connection_string):
         self.name = name
+        self.connection_string = connection_string
         self.conn = psycopg2.connect(connection_string)
         self.create_tables()
 
@@ -39,3 +41,20 @@ class PgTq(object):
             with self.conn.cursor() as cursor:
                 cursor.execute(sql)
                 return cursor.fetchone()
+
+    def wait_on_a_task(self):
+        connection = psycopg2.connect(self.connection_string)
+        connection.autocommit = True
+        cursor = connection.cursor()
+        cursor.execute("LISTEN data;")
+        while True:
+            select.select([connection], [], [])
+            connection.poll()
+            while connection.notifies:
+                connection.notifies.pop()
+                task = self.get_a_task()
+                if task:
+                    cursor.execute("UNLISTEN data;")
+                    cursor.close()
+                    connection.close()
+                    return task
