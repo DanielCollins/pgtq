@@ -22,12 +22,11 @@ a given *Task*. You can create one with the `handler` decorator provided
 by the queue:
 
     @q.handler()
-    def compute_meaning_of_life():
-        # ... lots of slow to finish work goes here ...
-        return 42
+    def add_numbers(a, b):
+        return a + b
 
 `compute_meaning_of_life` is now a Handler, but it still can be called
 directly. This will run immediately, blocking the current thread, and
 without going through the task queue:
 
-    compute_meaning_of_life()
+    add_numbers(a, b)
