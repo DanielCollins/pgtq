@@ -1,4 +1,4 @@
-sql_template = """
+SQL_TEMPLATE = """
 CREATE TABLE IF NOT EXISTS pgtq_{0}_scheduled (
   key INTEGER PRIMARY KEY,
   not_before TIMESTAMP WITHOUT TIME ZONE,

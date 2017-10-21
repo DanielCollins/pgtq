@@ -19,6 +19,7 @@ def test_can_make_handler(db):
     q = pgtq.PgTq('q', db.url())
 
     @q.handler()
+    # pylint: disable=unused-variable
     def test_handler():
         return 42
 

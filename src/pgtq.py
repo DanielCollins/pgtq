@@ -11,7 +11,7 @@ class PgTq(object):
         self.create_tables()
 
     def create_tables(self):
-        sql = schema.sql_template.format(self.name)
+        sql = schema.SQL_TEMPLATE.format(self.name)
         with self.conn:
             with self.conn.cursor() as cursor:
                 cursor.execute(sql)
@@ -37,5 +37,5 @@ class PgTq(object):
         sql = "pgtq_{0}_lock_task".format(self.name)
         with self.conn:
             with self.conn.cursor() as cursor:
-                cursor.execute(sql, [serialised_task])
+                cursor.execute(sql)
                 return cursor.fetchone()
