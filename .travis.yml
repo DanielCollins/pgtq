@@ -2,6 +2,10 @@ language: python
 python:
   - "3.5"
 install:
-  - pip install tox-travis
+  - pip install tox-travis coverage
 script:
   - tox
+  - env PYTHONPATH=src coverage run -m pytest
+  - coverage report -m
+after_success:
+  - coveralls
