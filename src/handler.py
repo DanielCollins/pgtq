@@ -1,7 +1,7 @@
 import functools
 
 
-class Task(object):
+class Handler(object):
 
     def __init__(self, queue, procedure, name=None):
         self.queue = queue

@@ -1,5 +1,5 @@
 import psycopg2
-import task
+import handler
 import schema
 
 
@@ -16,15 +16,15 @@ class PgTq(object):
             with self.conn.cursor() as cursor:
                 cursor.execute(sql)
 
-    def task(self, procedure):
-        return task.Task(self, procedure)
+    def handler(self, procedure):
+        return handler.Handler(self, procedure)
 
-    def push(self, task_name, args, kwargs):
+    def push(self, handler_name, args, kwargs):
         sql_template = """
            INSERT INTO pgtq_{1}_runnable (task) VALUES (%s);
         """
         sql = sql_template.format(self.name)
-        serialised_task = psycopg2.extras.Json({'name': task_name,
+        serialised_task = psycopg2.extras.Json({'name': handler_name,
                                                 'args': args,
                                                 'kwargs': kwargs})
         with self.conn:
