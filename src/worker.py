@@ -1,4 +1,5 @@
 import psycopg2
+import functools
 
 sql_template = """
 CREATE TABLE IF NOT EXISTS pgtq_{1}_scheduled (
@@ -68,6 +69,25 @@ PREPARE pgtq_{1}_run_scheduled AS
 """
 
 
+class Task(object):
+
+    def __init__(self, queue, procedure, name=None):
+        self.queue = queue
+        self.procedure = procedure
+        if not name:
+            name = procedure.__name__
+        self.name = name
+
+    def push(self, *args, **kwargs):
+        self.queue.push(self.name, args, kwargs)
+
+    def __call__(self, fn):
+        @functools.wraps(fn)
+        def decorated(*args, **kwargs):
+            return fn(*args, **kwargs)
+        return decorated
+
+
 class PgTq(object):
 
     def __init__(self, name, connection_string):
@@ -79,3 +99,9 @@ class PgTq(object):
         with self.conn:
             with self.conn.cursor() as cursor:
                 cursor.execute(sql)
+
+    def task(self, procedure):
+        return Task(self, procedure)
+
+    def push(self, task_name, args, kwargs):
+        raise NotImplementedError
