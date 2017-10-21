@@ -25,3 +25,9 @@ by the queue:
     def compute_meaning_of_life():
         # ... lots of slow to finish work goes here ...
         return 42
+
+`compute_meaning_of_life` is now a Handler, but it still can be called
+directly. This will run immediately, blocking the current thread, and
+without going through the task queue:
+
+    compute_meaning_of_life()

@@ -1,6 +1,3 @@
-import functools
-
-
 class Handler(object):
 
     def __init__(self, queue, procedure, name=None):
@@ -13,8 +10,5 @@ class Handler(object):
     def push(self, *args, **kwargs):
         self.queue.push(self.name, args, kwargs)
 
-    def __call__(self, fn):
-        @functools.wraps(fn)
-        def decorated(*args, **kwargs):
-            return fn(*args, **kwargs)
-        return decorated
+    def __call__(self, *args, **kwargs):
+        return self.procedure(*args, **kwargs)
