@@ -15,7 +15,7 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS
 CREATE TABLE IF NOT EXISTS pgtq_{1}_runnable (
   key INTEGER PRIMARY KEY,
   task JSON,
-  retried INTEGER
+  retried INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS pgtq_{1}_running (
@@ -85,4 +85,13 @@ class PgTq(object):
         return task.Task(self, procedure)
 
     def push(self, task_name, args, kwargs):
-        raise NotImplementedError
+        sql_template = """
+           INSERT INTO pgtq_{1}_runnable (task) VALUES (%s);
+        """
+        sql = sql_template.format(self.name)
+        seralised_taks = psycopg2.extras.Json({'name': task_name,
+                                               'args': args,
+                                               'kwargs': kwargs})
+        with self.conn:
+            with self.conn.cursor() as cursor:
+                cursor.execute(sql, serialised_task)
