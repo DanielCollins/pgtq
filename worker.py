@@ -1,28 +1,29 @@
 import psycopg2
 
 sql = """
-CREATE TABLE pgtq_scheduled (
+CREATE TABLE IF NOT EXISTS pgtq_scheduled (
   key INTEGER PRIMARY KEY,
   not_before TIMESTAMP WITHOUT TIME ZONE,
   task JSON,
   retried INTEGER
 );
 
-CREATE INDEX CONCURRENTLY ON pgtq_scheduled (not_before);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS
+  ix_pgtq_scheduled_not_before ON pgtq_scheduled (not_before);
 
-CREATE TABLE pgtq_runnable (
+CREATE TABLE IF NOT EXISTS pgtq_runnable (
   key INTEGER PRIMARY KEY,
   task JSON,
   retried INTEGER
 );
 
-CREATE TABLE pgtq_running (
+CREATE TABLE IF NOT EXISTS pgtq_running (
   key INTEGER PRIMARY KEY,
   task JSON,
   retried INTEGER
 );
 
-CREATE TABLE pgtq_complete (
+CREATE TABLE IF NOT EXISTS pgtq_complete (
   key INTEGER PRIMARY KEY,
   task JSON,
   retried INTEGER
