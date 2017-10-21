@@ -1,9 +1,6 @@
-DROP TABLE IF EXISTS scheduled;
-DROP TABLE IF EXISTS runnable;
-DROP TABLE IF EXISTS running;
-DROP TABLE IF EXISTS complete;
-DEALLOCATE ALL;
+import psycopg2
 
+sql = """
 CREATE TABLE scheduled (
   key INTEGER PRIMARY KEY,
   not_before TIMESTAMP WITHOUT TIME ZONE,
@@ -52,7 +49,7 @@ PREPARE mark_interupted(INTEGER) AS
   AS (DELETE FROM running WHERE key=$1 RETURNING *)
   INSERT INTO scheduled
     SELECT key,
-           (now() at time zone 'utc') + 
+           (now() at time zone 'utc') +
             (INTERVAL '1 second' * random() * retried),
            task,
            (retried + 1)
@@ -67,3 +64,15 @@ PREPARE run_scheduled AS
                   WHERE not_before < (now() at time zone 'utc'))
      RETURNING *)
   INSERT INTO runnable(key) SELECT key FROM ready RETURNING *;
+"""
+
+class PgTq(object):
+
+    def __init__(self, name, connection_string):
+        self.name = name
+        self.conn = psycopg2.connect(connection_string)
+
+    def create_tables(self):
+        with self.conn:
+            with conn.cursor() as cursor:
+                cur.execute(sql)
