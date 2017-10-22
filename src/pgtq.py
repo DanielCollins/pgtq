@@ -2,6 +2,7 @@ import select
 import psycopg2.extras
 import handler
 import schema
+import task
 
 
 class PgTq(object):
@@ -40,7 +41,9 @@ class PgTq(object):
         with self.conn:
             with self.conn.cursor() as cursor:
                 cursor.execute(sql)
-                return cursor.fetchone()
+                json_repr = cursor.fetchone()
+                if json_repr:
+                    return task.Task(json_repr)
 
     def wait_for_a_task(self):
         connection = psycopg2.connect(self.connection_string)

@@ -51,9 +51,9 @@ def test_most_things(db):
             assert cur.fetchone()[0] == 1
 
     task = q.get_a_task()
-    assert task[0] == 1
-    assert task[1]['name'] == 'test_handler'
-    assert task[2] == 0
+    assert task.key == 1
+    assert task.name == 'test_handler'
+    assert task.retried == 0
 
     no_task = q.get_a_task()
     assert no_task is None
