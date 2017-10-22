@@ -1,8 +1,18 @@
 # PGTQ: the PostgreSQL-backed python task queue
 
-**work in progress, not tested or usable (yet)**
+**work in progress, not tested or usable (yet?)**
 
 [![Build Status](https://travis-ci.org/DanielCollins/pgtq.svg?branch=master)](https://travis-ci.org/DanielCollins/pgtq) [![Coverage Status](https://coveralls.io/repos/github/DanielCollins/pgtq/badge.svg?branch=master)](https://coveralls.io/github/DanielCollins/pgtq?branch=master)
+
+PGTQ is a task queue (also known as job queue) system. It can be used you
+want to decouple execution of background tasks from the current thread. For
+example, if you have a flask based web-app, you might want to send an email
+due to some user action, but waiting for the SMTP server to report success
+may block the page render for too long. Instead, you can push an item into
+the task queue, and then immediately reply to the HTTP request. In the
+background, a worker process will pick up the task of sending the email.
+
+PGTQ tasks are writting in python, with PostgreSQL as the backing store.
 
 ## Quickstart
 
