@@ -89,3 +89,10 @@ class PgTq(object):
         with self.conn:
             with self.conn.cursor() as cursor:
                 cursor.execute(sql, [task_key])
+
+    def mark_interupted(self, task_key):
+        """Move the given task from the running set to the interupted set."""
+        sql = "EXECUTE pgtq_{0}_mark_interupted (%s);".format(self.name)
+        with self.conn:
+            with self.conn.cursor() as cursor:
+                cursor.execute(sql, [task_key])

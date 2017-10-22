@@ -25,6 +25,10 @@ class Task(object):
         failed.
         """
         handler = self.get_handler()
-        result = handler(*self.args, **self.kwargs)
+        try:
+            result = handler(*self.args, **self.kwargs)
+        except Exception as e:
+            self.queue.mark_interupted(self.key)
+            raise e
         self.queue.mark_completed(self.key)
         return result

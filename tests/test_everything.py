@@ -125,3 +125,44 @@ def test_conflicts_detected(db):
         assert False
     except RuntimeError as e:
         assert "already exists" in str(e)
+
+
+def test_failing_task_marked_interupted(db):
+    """Test whether a failing task will be recorded as having failed."""
+    q = pgtq.PgTq('q', db.url())
+
+    @q.handler()
+    def test_handler():
+        """Raise ValueError"""
+        raise ValueError
+
+    test_handler.push()
+
+    conn = psycopg2.connect(db.url())
+    sql = "SELECT count(*) FROM pgtq_q_runnable;"
+    with conn:
+        with conn.cursor() as cur:
+            cur.execute(sql)
+            assert cur.fetchone()[0] == 1
+
+    task = q.pop()
+    try:
+        task.execute()
+        assert False
+    except ValueError:
+        pass
+
+    sql = "SELECT count(*) FROM pgtq_q_runnable;"
+    with conn:
+        with conn.cursor() as cur:
+            cur.execute(sql)
+            assert cur.fetchone()[0] == 0
+
+    sql = "SELECT count(*) FROM pgtq_q_scheduled;"
+    with conn:
+        with conn.cursor() as cur:
+            cur.execute(sql)
+            assert cur.fetchone()[0] == 1
+
+    no_task = q.pop()
+    assert no_task is None

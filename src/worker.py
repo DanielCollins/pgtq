@@ -16,8 +16,9 @@ def poll_loop(queue):
                 task.execute()
             # pylint: disable=broad-except
             except Exception:
-                # this should not happen, but there is no reason to
-                # crash the entire worker process if it does
+                # `task.execute()` automaticaly sets up a retry, but
+                # it will also propogate the original exception if
+                # there was one. nothing to do here but go to the next task
                 pass
             time_of_last_task = now
         else:
