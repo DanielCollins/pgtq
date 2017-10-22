@@ -82,3 +82,10 @@ class PgTq(object):
                 cursor.close()
                 connection.close()
                 return
+
+    def mark_completed(self, task_key):
+        """Move the given task from the running set to the completed set."""
+        sql = "EXECUTE pgtq_{0}_mark_completed (%s);".format(self.name)
+        with self.conn:
+            with self.conn.cursor() as cursor:
+                cursor.execute(sql, [task_key])

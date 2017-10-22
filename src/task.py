@@ -25,4 +25,6 @@ class Task(object):
         failed.
         """
         handler = self.get_handler()
-        return handler(*self.args, **self.kwargs)
+        result = handler(*self.args, **self.kwargs)
+        self.queue.mark_completed(self.key)
+        return result

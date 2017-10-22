@@ -65,6 +65,18 @@ def test_most_things(db):
     assert task.retried == 0
     assert task.execute() == 5
 
+    sql = "SELECT count(*) FROM pgtq_q_runnable;"
+    with conn:
+        with conn.cursor() as cur:
+            cur.execute(sql)
+            assert cur.fetchone()[0] == 0
+
+    sql = "SELECT count(*) FROM pgtq_q_complete;"
+    with conn:
+        with conn.cursor() as cur:
+            cur.execute(sql)
+            assert cur.fetchone()[0] == 1
+
     no_task = q.pop()
     assert no_task is None
 
