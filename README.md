@@ -80,3 +80,30 @@ in the handler decorator:
         return a + b
 
 This may be useful to avoid name conflicts.
+
+## FAQ
+
+#### Isn't it bad to use an RDBMS for a queue?
+
+Maybe. Since this is a work in progress I'm not sure how well it's going to
+work out yet. Since tasks have to go through RDBMS paging system, B-Trees and
+so on, its never going to match the raw latency of something as simple as a
+ring buffer. It may also not scale out as well as a dedicated message queue
+system like 0MQ or rabbitmq. But I hope it has some advantages that might
+make it useful in the right circumstances:
+
+- If you are already using postgres, you can now run a task queue with zero
+  extra infrastructure. I have previously used celery, and experienced a lot
+  of operational instability with both rabbit and redis backing stores.
+  Meanwhile, pg is almost always solid.
+- It becomes trivial to fish out the current queue state and history. Instead
+  of rellying on obscure message queue commands you can query the database
+  yourself. That way you can build an admin panel easily, and include any
+  kind of analysis of task frequency, queue length (over time), etc.
+- The list of runnable tasks can be included in your existing backup system 
+- It might be possible to tie task queue operations and business logic
+  transactions into a single transaction. For example, it should be possible to
+  only create a "send signup email" task if and only if the user account was
+  100% certainly created. Contrast to how difficult it is to come up with a
+  commit protocol that can keep an RDBMS and seperate message queue in sync
+  in the presence of byzantine failures.
