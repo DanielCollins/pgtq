@@ -40,6 +40,17 @@ def test_can_call_handler_directly(db):
 
     assert test_handler(2, 3) == 5
 
+    @q.handler()
+    def failing_handler():
+        """Raise RuntimeError."""
+        raise RuntimeError("42")
+
+    try:
+        failing_handler()
+        assert False
+    except RuntimeError as e:
+        assert "42" in str(e)
+
 
 def test_most_things(db):
     """Test putting a task onto the queue and getting it out again."""
