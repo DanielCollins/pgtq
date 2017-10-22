@@ -1,5 +1,7 @@
 # PGTQ: the PostgreSQL-backed python task queue
 
+**work in progress, not tested or usable (yet)**
+
 [![Build Status](https://travis-ci.org/DanielCollins/pgtq.svg?branch=master)](https://travis-ci.org/DanielCollins/pgtq) [![Coverage Status](https://coveralls.io/repos/github/DanielCollins/pgtq/badge.svg?branch=master)](https://coveralls.io/github/DanielCollins/pgtq?branch=master)
 
 ## Quickstart
