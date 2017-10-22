@@ -1,3 +1,5 @@
+"""SQL for storing and working on tasks."""
+
 SQL_TEMPLATE = """
 CREATE TABLE IF NOT EXISTS pgtq_{0}_scheduled (
   key INTEGER PRIMARY KEY,

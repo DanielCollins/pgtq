@@ -1,3 +1,4 @@
+"""A task queue"""
 import select
 import psycopg2.extras
 import handler
@@ -6,25 +7,31 @@ import task
 
 
 class PgTq(object):
+    """Represents a single task queue."""
 
     def __init__(self, name, connection_string):
+        """Create a task queue with the given name in the given DB."""
         self.name = name
         self.connection_string = connection_string
         self.conn = psycopg2.connect(connection_string)
         self.create_tables()
 
     def create_tables(self):
+        """Ensure that the structures needed to store tasks exist."""
         sql = schema.SQL_TEMPLATE.format(self.name)
         with self.conn:
             with self.conn.cursor() as cursor:
                 cursor.execute(sql)
 
     def handler(self):
+        """Return a decorator for creating new handlers."""
         def decorator(procedure):
+            """Create a new handler from the decorated function."""
             return handler.Handler(self, procedure)
         return decorator
 
     def push(self, handler_name, args, kwargs):
+        """Insert a task into the end of the queue."""
         sql_template = """
            INSERT INTO pgtq_{0}_runnable (task) VALUES (%s);
         """
@@ -37,6 +44,7 @@ class PgTq(object):
                 cursor.execute(sql, [serialised_task])
 
     def pop(self):
+        """Remove a task from the start of the queue, returning it."""
         sql = "EXECUTE pgtq_{0}_lock_task;".format(self.name)
         with self.conn:
             with self.conn.cursor() as cursor:
@@ -46,6 +54,11 @@ class PgTq(object):
                     return task.Task(json_repr)
 
     def wait_for_a_task(self):
+        """Block the thread until the DB notifies a task exists.
+
+        In the presense of multiple worker processes, there is no
+        garentee that a task will exist when this method returns.
+        """
         connection = psycopg2.connect(self.connection_string)
         connection.autocommit = True
         cursor = connection.cursor()
