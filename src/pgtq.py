@@ -61,7 +61,7 @@ class PgTq(object):
                 cursor.execute(sql)
                 json_repr = cursor.fetchone()
                 if json_repr:
-                    return task.Task(json_repr)
+                    return task.Task(self, json_repr)
 
     def wait_for_a_task(self):
         """Block the thread until the DB notifies a task exists.

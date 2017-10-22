@@ -5,15 +5,6 @@ import datetime
 MAX_POLLING_IDLE_TIME = datetime.timedelta(seconds=30)
 
 
-def handle_task(_task):
-    """Find and execute the handler for the given task.
-
-    If the handler fails, retry it up to the maximum number of times,
-    otherwise mark it permanently failed or completed.
-    """
-    raise NotImplementedError
-
-
 def poll_loop(queue):
     """Continually fetch and handle tasks from the queue."""
     time_of_last_task = datetime.datetime.utcnow()
@@ -21,7 +12,7 @@ def poll_loop(queue):
         task = queue.pop()
         now = datetime.datetime.utcnow()
         if task:
-            handle_task(task)
+            task.execute()
             time_of_last_task = now
         else:
             time_since_last_task = now - time_of_last_task

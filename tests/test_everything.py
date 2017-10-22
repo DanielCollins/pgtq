@@ -63,6 +63,7 @@ def test_most_things(db):
     assert task.key == 1
     assert task.name == 'test_handler'
     assert task.retried == 0
+    assert task.execute() == 5
 
     no_task = q.pop()
     assert no_task is None
