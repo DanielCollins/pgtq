@@ -10,7 +10,7 @@ def handle_task(_task):
 def poll_loop(queue):
     time_of_last_task = datetime.datetime.utcnow()
     while True:
-        task = queue.get_a_task()
+        task = queue.pop()
         now = datetime.datetime.utcnow()
         if task:
             handle_task(task)

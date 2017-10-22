@@ -40,6 +40,6 @@ a worker process should remove the task from the queue and process it. The
 arguments must be anything JSON serialisable.
 
 A `Task` can be fetched out of the queue (e.g. in a worker process) using
-`get_a_task`:
+`pop`:
 
-    q.get_a_task(self)
+    q.pop(self)

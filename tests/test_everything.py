@@ -50,10 +50,10 @@ def test_most_things(db):
             cur.execute(sql)
             assert cur.fetchone()[0] == 1
 
-    task = q.get_a_task()
+    task = q.pop()
     assert task.key == 1
     assert task.name == 'test_handler'
     assert task.retried == 0
 
-    no_task = q.get_a_task()
+    no_task = q.pop()
     assert no_task is None

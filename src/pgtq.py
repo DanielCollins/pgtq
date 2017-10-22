@@ -36,7 +36,7 @@ class PgTq(object):
             with self.conn.cursor() as cursor:
                 cursor.execute(sql, [serialised_task])
 
-    def get_a_task(self):
+    def pop(self):
         sql = "EXECUTE pgtq_{0}_lock_task;".format(self.name)
         with self.conn:
             with self.conn.cursor() as cursor:
