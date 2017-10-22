@@ -43,3 +43,13 @@ A `Task` can be fetched out of the queue (e.g. in a worker process) using
 `pop`:
 
     q.pop(self)
+
+The name of the `Task` as stored in the database is accessable via `Task.name`.
+By default the name of the handler function is used, but you can overide it
+in the handler decorator:
+
+    @q.handler(name="sum_task")
+    def add_numbers(a, b):
+        return a + b
+
+This may be useful to avoid name conflicts.
