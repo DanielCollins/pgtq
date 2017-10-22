@@ -4,12 +4,10 @@
 class Handler(object):
     """A callable that can execute a single type of task."""
 
-    def __init__(self, queue, procedure, name=None):
+    def __init__(self, queue, procedure, name):
         """Create a Handler for a given queue and procedure."""
         self.queue = queue
         self.procedure = procedure
-        if not name:
-            name = procedure.__name__
         self.name = name
 
     def push(self, *args, **kwargs):

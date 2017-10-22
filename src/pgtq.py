@@ -23,11 +23,15 @@ class PgTq(object):
             with self.conn.cursor() as cursor:
                 cursor.execute(sql)
 
+    # pylint: disable=unused-argument
     def handler(self, name=None):
         """Return a decorator for creating new handlers."""
         def decorator(procedure):
             """Create a new handler from the decorated function."""
-            return handler.Handler(self, procedure, name=name)
+            nonlocal name
+            if not name:
+                name = procedure.__name__
+            return handler.Handler(self, procedure, name)
         return decorator
 
     def push(self, handler_name, args, kwargs):
