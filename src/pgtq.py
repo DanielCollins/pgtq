@@ -15,6 +15,7 @@ class PgTq(object):
         self.connection_string = connection_string
         self.conn = psycopg2.connect(connection_string)
         self.create_tables()
+        self.handlers = {}
 
     def create_tables(self):
         """Ensure that the structures needed to store tasks exist."""
@@ -31,7 +32,12 @@ class PgTq(object):
             nonlocal name
             if not name:
                 name = procedure.__name__
-            return handler.Handler(self, procedure, name)
+            new_handler = handler.Handler(self, procedure, name)
+            if new_handler.name in self.handlers:
+                err = "Conflict: handler for task '{}' already exists."
+                raise RuntimeError(err.format(new_handler.name))
+            self.handlers[new_handler.name] = new_handler
+            return new_handler
         return decorator
 
     def push(self, handler_name, args, kwargs):

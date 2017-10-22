@@ -80,3 +80,24 @@ def test_task_name_overide(db):
     test_handler.push(2, 3)
     task = q.pop()
     assert task.name == 'more_awesome_name'
+
+
+def test_conflicts_detected(db):
+    """Test that duplicate handlers are reported."""
+    q = pgtq.PgTq('q', db.url())
+
+    @q.handler()
+    # pylint: disable=unused-variable
+    def test_handler(a, b):
+        """Sum numbers"""
+        return a + b
+
+    try:
+        @q.handler(name="test_handler")
+        # pylint: disable=unused-variable
+        def test_handler_b(a, b):
+            """Multiply numbers"""
+            return a * b
+        assert False
+    except RuntimeError as e:
+        assert "already exists" in str(e)
