@@ -34,7 +34,7 @@ def test_can_call_handler_directly(db):
     assert test_handler(2, 3) == 5
 
 
-def test_can_push_task(db):
+def test_most_things(db):
     q = pgtq.PgTq('q', db.url())
 
     @q.handler()
@@ -49,3 +49,11 @@ def test_can_push_task(db):
         with conn.cursor() as cur:
             cur.execute(sql)
             assert cur.fetchone()[0] == 1
+
+    task = q.get_a_task()
+    assert task[0] == 1
+    assert task[1]['name'] == 'test_handler'
+    assert task[2] == 0
+
+    no_task = q.get_a_task()
+    assert no_task is None
