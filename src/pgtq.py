@@ -42,7 +42,7 @@ class PgTq(object):
                 cursor.execute(sql)
                 return cursor.fetchone()
 
-    def wait_on_a_task(self):
+    def wait_for_a_task(self):
         connection = psycopg2.connect(self.connection_string)
         connection.autocommit = True
         cursor = connection.cursor()
@@ -50,11 +50,8 @@ class PgTq(object):
         while True:
             select.select([connection], [], [])
             connection.poll()
-            while connection.notifies:
-                connection.notifies.pop()
-                task = self.get_a_task()
-                if task:
-                    cursor.execute("UNLISTEN data;")
-                    cursor.close()
-                    connection.close()
-                    return task
+            if connection.notifies:
+                cursor.execute("UNLISTEN data;")
+                cursor.close()
+                connection.close()
+                return
