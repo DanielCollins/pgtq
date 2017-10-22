@@ -23,11 +23,11 @@ class PgTq(object):
             with self.conn.cursor() as cursor:
                 cursor.execute(sql)
 
-    def handler(self):
+    def handler(self, name=None):
         """Return a decorator for creating new handlers."""
         def decorator(procedure):
             """Create a new handler from the decorated function."""
-            return handler.Handler(self, procedure)
+            return handler.Handler(self, procedure, name=name)
         return decorator
 
     def push(self, handler_name, args, kwargs):

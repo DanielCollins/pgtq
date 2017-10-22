@@ -66,3 +66,17 @@ def test_most_things(db):
 
     no_task = q.pop()
     assert no_task is None
+
+
+def test_task_name_overide(db):
+    """Test whether we can override the default name of a task."""
+    q = pgtq.PgTq('q', db.url())
+
+    @q.handler(name='more_awesome_name')
+    def test_handler(a, b):
+        """Sum numbers"""
+        return a + b
+
+    test_handler.push(2, 3)
+    task = q.pop()
+    assert task.name == 'more_awesome_name'
