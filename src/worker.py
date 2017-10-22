@@ -12,7 +12,13 @@ def poll_loop(queue):
         task = queue.pop()
         now = datetime.datetime.utcnow()
         if task:
-            task.execute()
+            try:
+                task.execute()
+            # pylint: disable=broad-except
+            except Exception:
+                # this should not happen, but there is no reason to
+                # crash the entire worker process if it does
+                pass
             time_of_last_task = now
         else:
             time_since_last_task = now - time_of_last_task
@@ -29,5 +35,17 @@ def main_loop(queue):
        database that another task is ready.
     """
     while True:
-        poll_loop(queue)
-        queue.wait_for_a_task()
+        try:
+            poll_loop(queue)
+        # pylint: disable=broad-except
+        except Exception:
+            # this should not happen, but there is no reason to crash
+            # the entire worker process if it does
+            pass
+        try:
+            queue.wait_for_a_task()
+        # pylint: disable=broad-except
+        except Exception:
+            # this should not happen, but there is no reason to crash
+            # the entire worker process if it does
+            pass
