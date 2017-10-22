@@ -44,6 +44,21 @@ A `Task` can be fetched out of the queue (e.g. in a worker process) using
 
     q.pop(self)
 
+Usually, however, you will want to run dedicated worker processes. You have
+to set these up yourself, because the handlers need to be imported in the
+process or the worker is useless. You should use the worker main loop
+functions to correctly extract items out of the queue, handling automatic
+retries etc.:
+
+    import worker
+
+    if __name__ == "__main__":
+        worker.main_loop(q)
+
+`main_loop` never returns. You can daemonise this process prior to starting
+the main loop, or run it in a process manager or terminal multiplexer any
+other setup you like to ensure it keeps running in the background.
+
 The name of the `Task` as stored in the database is accessable via `Task.name`.
 By default the name of the handler function is used, but you can overide it
 in the handler decorator:
