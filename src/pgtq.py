@@ -46,12 +46,13 @@ class PgTq(object):
         connection = psycopg2.connect(self.connection_string)
         connection.autocommit = True
         cursor = connection.cursor()
-        cursor.execute("LISTEN data;")
+        channel = "pgtq_{0}_runnable_channel".format(self.name)
+        cursor.execute("LISTEN {};".format(channel))
         while True:
             select.select([connection], [], [])
             connection.poll()
             if connection.notifies:
-                cursor.execute("UNLISTEN data;")
+                cursor.execute("UNLISTEN {};".format(channel))
                 cursor.close()
                 connection.close()
                 return
