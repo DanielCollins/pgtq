@@ -36,4 +36,5 @@ Alternatively, you can push a *task* into the queue:
     add_numbers.push(2, 3)
 
 This will return immediately without computing the result. As soon as possible,
-a worker process should remove the task from the queue and process it.
+a worker process should remove the task from the queue and process it. The
+arguments must be anything JSON serialisable.
