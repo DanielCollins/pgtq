@@ -49,9 +49,12 @@ class PgTq(object):
         serialised_task = psycopg2.extras.Json({'name': handler_name,
                                                 'args': args,
                                                 'kwargs': kwargs})
+        channel = "pgtq_{0}_runnable_channel".format(self.name)
+        notification = "NOTIFY {};".format(channel)
         with self.conn:
             with self.conn.cursor() as cursor:
                 cursor.execute(sql, [serialised_task])
+                cursor.execute(notification)
 
     def pop(self):
         """Remove a task from the start of the queue, returning it."""
