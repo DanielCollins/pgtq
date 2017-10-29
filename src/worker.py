@@ -31,11 +31,11 @@ def poll_loop(queue):
 def main_loop(queue):
     """Continually fetch and handle tasks from the given queue.
 
-       Starts by polling for tasks in a tight loop. If no tasks arrive
-       for MAX_POLLING_IDLE_TIME, go to sleep until notified by the
-       database that another task is ready.
+    Starts by polling for tasks in a tight loop. If no tasks arrive
+    for MAX_POLLING_IDLE_TIME, go to sleep until notified by the
+    database that another task is ready.
 
-       This function does not return.
+    This function does not return.
     """
     while True:
         try:

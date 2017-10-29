@@ -1,4 +1,4 @@
-"""A task queue"""
+"""A task queue."""
 import select
 import psycopg2.extras
 import handler
