@@ -24,10 +24,12 @@ Create a database:
 
 Create a task queue:
 
-    import pgtq
+```python
+import pgtq
     
      
-    q = pgtq.PgTq('test_queue', "dbname=q user=postgres") 
+q = pgtq.PgTq('test_queue', "dbname=q user=postgres") 
+```
 
 A "scheduler" process is responsible for pushing scheduled (as opposed to
 immediate) tasks onto the task queue at the correct time. Failed tasks that
@@ -44,19 +46,25 @@ A *Handler* is a function that can perform the work of completing
 a given *task*. You can create one with the `handler` decorator provided
 by the queue:
 
-    @q.handler()
-    def add_numbers(a, b):
-        return a + b
+```python
+@q.handler()
+def add_numbers(a, b):
+    return a + b
+```
 
 `add_numbers` is now a Handler, but it still can be called
 directly. This will run immediately, blocking the current thread, and
 without going through the task queue:
 
-    add_numbers(2, 3)
+```python
+add_numbers(2, 3)
+```
 
 Alternatively, you can push a *task* into the queue:
 
-    add_numbers.push(2, 3)
+```python
+add_numbers.push(2, 3)
+```
 
 This will return immediately without computing the result. As soon as possible,
 a worker process should remove the task from the queue and process it. The
@@ -65,7 +73,9 @@ arguments must be anything JSON serialisable.
 A `Task` can be fetched out of the queue (e.g. in a worker process) using
 `pop`:
 
-    q.pop(self)
+```python
+q.pop(self)
+```
 
 Usually, however, you will want to run dedicated worker processes. You have
 to set these up yourself, because the handlers need to be imported in the
@@ -73,10 +83,12 @@ process or the worker is useless. You should use the worker main loop
 functions to correctly extract items out of the queue, handling automatic
 retries etc.:
 
-    import worker
+```python
+import worker
 
-    if __name__ == "__main__":
-        worker.main_loop(q)
+if __name__ == "__main__":
+    worker.main_loop(q)
+```
 
 `main_loop` never returns. You can daemonise this process prior to starting
 the main loop, or run it in a process manager or terminal multiplexer any
@@ -86,9 +98,11 @@ The name of the `Task` as stored in the database is accessable via `Task.name`.
 By default the name of the handler function is used, but you can overide it
 in the handler decorator:
 
-    @q.handler(name="sum_task")
-    def add_numbers(a, b):
-        return a + b
+```python
+@q.handler(name="sum_task")
+def add_numbers(a, b):
+    return a + b
+```
 
 This may be useful to avoid name conflicts.
 
