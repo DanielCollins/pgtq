@@ -113,7 +113,7 @@ class PgTq(object):
         channel = "pgtq_{0}_scheduled_channel".format(self.name)
         cursor.execute("LISTEN {};".format(channel))
         while True:
-            select.select([connection], [], [])
+            select.select([connection], [], [], timeout)
             connection.poll()
             if connection.notifies:
                 cursor.execute("UNLISTEN {};".format(channel))
