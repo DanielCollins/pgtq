@@ -45,18 +45,7 @@ PREPARE pgtq_{0}_mark_completed (INTEGER) AS
   AS (DELETE FROM pgtq_{0}_running WHERE key=$1 RETURNING *)
   INSERT INTO pgtq_{0}_complete SELECT * FROM task RETURNING *;
 
-PREPARE pgtq_{0}_mark_interupted(INTEGER) AS
-  WITH task
-  AS (DELETE FROM pgtq_{0}_running WHERE key=$1 RETURNING *)
-  INSERT INTO pgtq_{0}_scheduled
-    SELECT key,
-           (now() at time zone 'utc') +
-            (INTERVAL '1 second' * random() * retried),
-           task,
-           (retried + 1)
-    FROM task RETURNING *;
-
-PREPARE pgtq_{0}_run_scheduled AS
+PREPARE pgtq_{0}_move_scheduled AS
   WITH ready AS
     (DELETE FROM pgtq_{0}_scheduled a
      WHERE
@@ -65,4 +54,25 @@ PREPARE pgtq_{0}_run_scheduled AS
                   WHERE not_before < (now() at time zone 'utc'))
      RETURNING *)
   INSERT INTO pgtq_{0}_runnable(key) SELECT key FROM ready RETURNING *;
+
+CREATE FUNCTION pgtq_{0}_run_scheduled () RETURNS
+   TIMESTAMP WITHOUT TIME ZONE AS $$
+    EXECUTE pgtq_{0}_move_scheduled;
+    SELECT MIN(not_before) from pgtq_{0}_scheduled;
+$$ LANGUAGE SQL;
+
+CREATE FUNCTION pgtq_{0}_interupt(in_key INTEGER) RETURNS void AS $$
+BEGIN
+    WITH task
+      AS (DELETE FROM pgtq_{0}_running WHERE key=in_key RETURNING *)
+      INSERT INTO pgtq_{0}_scheduled
+        SELECT key,
+               (now() at time zone 'utc') +
+                (INTERVAL '1 second' * random() * retried),
+               task,
+               (retried + 1)
+        FROM task;
+    NOTIFY pgtq_{0}_scheduled_channel;
+END;
+$$ LANGUAGE plpgsql;
 """

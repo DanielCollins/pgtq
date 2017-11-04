@@ -66,6 +66,21 @@ class PgTq(object):
                 if json_repr:
                     return task.Task(self, json_repr)
 
+    def run_scheduled(self):
+        """Move scheduled tasks into task queue.
+
+        Any and all schedule items, including failed task retries, that
+        are at or past their scheduled time, are pushed onto the end of
+        the task queue to be picked up by free workers.
+
+        Return the time of the next scheduled task.
+        """
+        sql = "SELECT pgtq_{0}_run_scheduled();".format(self.name)
+        with self.conn:
+            with self.conn.cursor() as cursor:
+                cursor.execute(sql)
+                return cursor.fetchone()[0]
+
     def wait_for_a_task(self):
         """Block the thread until the DB notifies a task exists.
 
@@ -86,6 +101,25 @@ class PgTq(object):
                 connection.close()
                 return
 
+    def wait_for_a_schedule(self, timeout):
+        """Wait for a new shceduled item.
+
+        Block the thread until the DB notifies that a new task has been
+        scheduled, up to timeout seconds.
+        """
+        connection = psycopg2.connect(self.connection_string)
+        connection.autocommit = True
+        cursor = connection.cursor()
+        channel = "pgtq_{0}_scheduled_channel".format(self.name)
+        cursor.execute("LISTEN {};".format(channel))
+        while True:
+            select.select([connection], [], [])
+            connection.poll()
+            if connection.notifies:
+                cursor.execute("UNLISTEN {};".format(channel))
+                cursor.close()
+                connection.close()
+
     def mark_completed(self, task_key):
         """Move the given task from the running set to the completed set."""
         sql = "EXECUTE pgtq_{0}_mark_completed (%s);".format(self.name)
@@ -95,7 +129,7 @@ class PgTq(object):
 
     def mark_interupted(self, task_key):
         """Move the given task from the running set to the interupted set."""
-        sql = "EXECUTE pgtq_{0}_mark_interupted (%s);".format(self.name)
+        sql = "SELECT pgtq_{0}_interupt(%s);".format(self.name)
         with self.conn:
             with self.conn.cursor() as cursor:
                 cursor.execute(sql, [task_key])

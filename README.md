@@ -29,6 +29,17 @@ Create a task queue:
      
     q = pgtq.PgTq('test_queue', "dbname=q user=postgres") 
 
+A "scheduler" process is responsible for pushing scheduled (as opposed to
+immediate) tasks onto the task queue at the correct time. Failed tasks that
+are to be retried later become scheduled tasks, so, even if you are not
+using scheduled tasks, you should have the shceduler running. Provide
+it with the queue name and connection string like this:
+
+    scheduler test_queue postgresql://postgres@127.0.0.1:63630/test_queue
+
+There is usually no reason to run more than one scheduler process, but
+doing so will not cause duplicate tasks or similar problems.
+
 A *Handler* is a function that can perform the work of completing
 a given *task*. You can create one with the `handler` decorator provided
 by the queue:

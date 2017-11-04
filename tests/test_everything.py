@@ -166,3 +166,5 @@ def test_failing_task_marked_interupted(db):
 
     no_task = q.pop()
     assert no_task is None
+
+    assert q.run_scheduled() is None
