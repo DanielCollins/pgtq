@@ -61,6 +61,13 @@ CREATE FUNCTION pgtq_{0}_run_scheduled () RETURNS
     SELECT MIN(not_before) from pgtq_{0}_scheduled;
 $$ LANGUAGE SQL;
 
+CREATE FUNCTION pgtq_{0}_push(in_task JSON) RETURNS void AS $$
+BEGIN
+    INSERT INTO pgtq_{0}_runnable (task) VALUES (in_task);
+    NOTIFY pgtq_{0}_runnable_channel;
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE FUNCTION pgtq_{0}_interupt(in_key INTEGER) RETURNS void AS $$
 BEGIN
     WITH task
