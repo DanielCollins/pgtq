@@ -25,14 +25,17 @@ class PgTq(object):
                 cursor.execute(sql)
 
     # pylint: disable=unused-argument
-    def handler(self, name=None):
+    def handler(self, name=None, max_retries=None):
         """Return a decorator for creating new handlers."""
+        if max_retries is not None and max_retries < 0:
+            raise ValueError("max_retries must be positive")
+
         def decorator(procedure):
             """Create a new handler from the decorated function."""
             nonlocal name
             if not name:
                 name = procedure.__name__
-            new_handler = handler.Handler(self, procedure, name)
+            new_handler = handler.Handler(self, procedure, name, max_retries)
             if new_handler.name in self.handlers:
                 err = "Conflict: handler for task '{}' already exists."
                 raise RuntimeError(err.format(new_handler.name))
@@ -40,16 +43,16 @@ class PgTq(object):
             return new_handler
         return decorator
 
-    def push(self, handler_name, args, kwargs):
+    def push(self, handler_name, max_retries, args, kwargs):
         """Insert a task into the end of the queue."""
-        sql_template = "SELECT pgtq_{0}_push(%s);"
+        sql_template = "SELECT pgtq_{0}_push(%s, %s);"
         sql = sql_template.format(self.name)
         serialised_task = psycopg2.extras.Json({'name': handler_name,
                                                 'args': args,
                                                 'kwargs': kwargs})
         with self.conn:
             with self.conn.cursor() as cursor:
-                cursor.execute(sql, [serialised_task])
+                cursor.execute(sql, [serialised_task, max_retries])
 
     def pop(self):
         """Remove a task from the start of the queue, returning it."""

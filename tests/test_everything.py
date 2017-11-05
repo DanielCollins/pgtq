@@ -131,7 +131,7 @@ def test_failing_task_marked_interupted(db):
     """Test whether a failing task will be recorded as having failed."""
     q = pgtq.PgTq('q', db.url())
 
-    @q.handler()
+    @q.handler(max_retries=1)
     def test_handler():
         """Raise ValueError"""
         raise ValueError
@@ -146,6 +146,9 @@ def test_failing_task_marked_interupted(db):
             assert cur.fetchone()[0] == 1
 
     task = q.pop()
+    assert task.max_retries == 1
+    assert task.attempts == 0
+    assert task.name == "test_handler"
     try:
         task.execute()
         assert False

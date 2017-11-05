@@ -12,6 +12,7 @@ class Task(object):
         self.args = json_repr[1]['args']
         self.kwargs = json_repr[1]['kwargs']
         self.attempts = json_repr[2]
+        self.max_retries = json_repr[3]
 
     def get_handler(self):
         """Return a `Handler` capable of executing this `Task`."""
