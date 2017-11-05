@@ -164,6 +164,12 @@ def test_failing_task_marked_interupted(db):
             cur.execute(sql)
             assert cur.fetchone()[0] == 1
 
+    sql = "SELECT task FROM pgtq_q_scheduled;"
+    with conn:
+        with conn.cursor() as cur:
+            cur.execute(sql)
+            assert cur.fetchone()[0]['name'] == 'test_handler'
+
     no_task = q.pop()
     assert no_task is None
 
