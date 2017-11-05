@@ -5,8 +5,8 @@ CREATE TABLE IF NOT EXISTS pgtq_{0}_scheduled (
   key INTEGER PRIMARY KEY,
   not_before TIMESTAMP WITHOUT TIME ZONE NOT NULL,
   task JSON NOT NULL,
-  retried INTEGER NOT NULL,
-  max_retries INTEGER
+  attempts INTEGER NOT NULL,
+  max_attempts INTEGER
 );
 
 CREATE INDEX IF NOT EXISTS
@@ -15,29 +15,29 @@ CREATE INDEX IF NOT EXISTS
 CREATE TABLE IF NOT EXISTS pgtq_{0}_runnable (
   key SERIAL PRIMARY KEY,
   task JSON NOT NULL,
-  retried INTEGER DEFAULT 0 NOT NULL,
-  max_retries INTEGER DEFAULT NULL
+  attempts INTEGER DEFAULT 0 NOT NULL,
+  max_attempts INTEGER DEFAULT NULL
 );
 
 CREATE TABLE IF NOT EXISTS pgtq_{0}_running (
   key INTEGER PRIMARY KEY,
   task JSON NOT NULL,
-  retried INTEGER NOT NULL,
-  max_retries INTEGER
+  attempts INTEGER NOT NULL,
+  max_attempts INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS pgtq_{0}_complete (
   key INTEGER PRIMARY KEY,
   task JSON NOT NULL,
-  retried INTEGER NOT NULL,
-  max_retries INTEGER
+  attempts INTEGER NOT NULL,
+  max_attempts INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS pgtq_{0}_failed (
   key INTEGER PRIMARY KEY,
   task JSON NOT NULL,
-  retried INTEGER NOT NULL,
-  max_retries INTEGER
+  attempts INTEGER NOT NULL,
+  max_attempts INTEGER
 );
 
 PREPARE pgtq_{0}_lock_task AS
@@ -64,8 +64,8 @@ PREPARE pgtq_{0}_move_scheduled AS
                   FROM pgtq_{0}_scheduled
                   WHERE not_before < (now() at time zone 'utc'))
      RETURNING *)
-  INSERT INTO pgtq_{0}_runnable(key, task, retried, max_retries)
-    SELECT key, task, retried, max_retries FROM ready RETURNING *;
+  INSERT INTO pgtq_{0}_runnable(key, task, attempts, max_attempts)
+    SELECT key, task, attempts, max_attempts FROM ready RETURNING *;
 
 CREATE FUNCTION pgtq_{0}_run_scheduled () RETURNS
    TIMESTAMP WITHOUT TIME ZONE AS $$
@@ -85,21 +85,21 @@ DECLARE
   task pgtq_{0}_running%ROWTYPE;
 BEGIN
    DELETE FROM pgtq_{0}_running WHERE key=in_key RETURNING * INTO task;
-   IF task.max_retries IS NULL OR task.retried < task.max_retries THEN
-      INSERT INTO pgtq_{0}_scheduled (key, not_before, task, retried,
-                                      max_retries)
+   IF task.max_attempts IS NULL OR task.attempts < task.max_attempts THEN
+      INSERT INTO pgtq_{0}_scheduled (key, not_before, task, attempts,
+                                      max_attempts)
       VALUES (task.key,
               (now() at time zone 'utc') +
-                (INTERVAL '1 second' * random() * task.retried),
+                (INTERVAL '1 second' * random() * task.attempts),
               task.task,
-              (task.retried + 1),
-              task.max_retries);
+              (task.attempts + 1),
+              task.max_attempts);
     ELSE
-      INSERT INTO pgtq_{0}_failed (key, task, retries, max_retries)
+      INSERT INTO pgtq_{0}_failed (key, task, attempts, max_attempts)
       VALUES (task.key,
               task.task,
-              task.retries,
-              task.max_retries);
+              task.attempts,
+              task.max_attempts);
     END IF;
 
     NOTIFY pgtq_{0}_scheduled_channel;
