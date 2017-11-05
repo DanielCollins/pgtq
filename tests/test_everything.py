@@ -73,7 +73,7 @@ def test_most_things(db):
     task = q.pop()
     assert task.key == 1
     assert task.name == 'test_handler'
-    assert task.attempts == 0
+    assert task.retried == 0
     assert task.execute() == 5
 
     sql = "SELECT count(*) FROM pgtq_q_runnable;"
