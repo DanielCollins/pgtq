@@ -3,9 +3,9 @@
 SQL_TEMPLATE = """
 CREATE TABLE IF NOT EXISTS pgtq_{0}_scheduled (
   key INTEGER PRIMARY KEY,
-  not_before TIMESTAMP WITHOUT TIME ZONE,
-  task JSON,
-  retried INTEGER,
+  not_before TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+  task JSON NOT NULL,
+  retried INTEGER NOT NULL,
   max_retries INTEGER
 );
 
@@ -14,29 +14,29 @@ CREATE INDEX IF NOT EXISTS
 
 CREATE TABLE IF NOT EXISTS pgtq_{0}_runnable (
   key SERIAL PRIMARY KEY,
-  task JSON,
-  retried INTEGER DEFAULT 0,
+  task JSON NOT NULL,
+  retried INTEGER DEFAULT 0 NOT NULL,
   max_retries INTEGER DEFAULT NULL
 );
 
 CREATE TABLE IF NOT EXISTS pgtq_{0}_running (
   key INTEGER PRIMARY KEY,
-  task JSON,
-  retried INTEGER,
+  task JSON NOT NULL,
+  retried INTEGER NOT NULL,
   max_retries INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS pgtq_{0}_complete (
   key INTEGER PRIMARY KEY,
-  task JSON,
-  retried INTEGER,
+  task JSON NOT NULL,
+  retried INTEGER NOT NULL,
   max_retries INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS pgtq_{0}_failed (
   key INTEGER PRIMARY KEY,
-  task JSON,
-  retried INTEGER,
+  task JSON NOT NULL,
+  retried INTEGER NOT NULL,
   max_retries INTEGER
 );
 
@@ -64,7 +64,8 @@ PREPARE pgtq_{0}_move_scheduled AS
                   FROM pgtq_{0}_scheduled
                   WHERE not_before < (now() at time zone 'utc'))
      RETURNING *)
-  INSERT INTO pgtq_{0}_runnable(key) SELECT key FROM ready RETURNING *;
+  INSERT INTO pgtq_{0}_runnable(key, task, retried, max_retries)
+    SELECT key, task, retried, max_retries FROM ready RETURNING *;
 
 CREATE FUNCTION pgtq_{0}_run_scheduled () RETURNS
    TIMESTAMP WITHOUT TIME ZONE AS $$
