@@ -5,7 +5,8 @@ CREATE TABLE IF NOT EXISTS pgtq_{0}_scheduled (
   key INTEGER PRIMARY KEY,
   not_before TIMESTAMP WITHOUT TIME ZONE,
   task JSON,
-  retried INTEGER
+  retried INTEGER,
+  max_retries INTEGER
 );
 
 CREATE INDEX IF NOT EXISTS
@@ -14,19 +15,29 @@ CREATE INDEX IF NOT EXISTS
 CREATE TABLE IF NOT EXISTS pgtq_{0}_runnable (
   key SERIAL PRIMARY KEY,
   task JSON,
-  retried INTEGER DEFAULT 0
+  retried INTEGER DEFAULT 0,
+  max_retries INTEGER DEFAULT NULL
 );
 
 CREATE TABLE IF NOT EXISTS pgtq_{0}_running (
   key INTEGER PRIMARY KEY,
   task JSON,
-  retried INTEGER
+  retried INTEGER,
+  max_retries INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS pgtq_{0}_complete (
   key INTEGER PRIMARY KEY,
   task JSON,
-  retried INTEGER
+  retried INTEGER,
+  max_retries INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS pgtq_{0}_failed (
+  key INTEGER PRIMARY KEY,
+  task JSON,
+  retried INTEGER,
+  max_retries INTEGER
 );
 
 PREPARE pgtq_{0}_lock_task AS
@@ -69,16 +80,27 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE FUNCTION pgtq_{0}_interupt(in_key INTEGER) RETURNS void AS $$
+DECLARE
+  task pgtq_{0}_running%ROWTYPE;
 BEGIN
-    WITH task
-      AS (DELETE FROM pgtq_{0}_running WHERE key=in_key RETURNING *)
-      INSERT INTO pgtq_{0}_scheduled
-        SELECT key,
-               (now() at time zone 'utc') +
-                (INTERVAL '1 second' * random() * retried),
-               task,
-               (retried + 1)
-        FROM task;
+   DELETE FROM pgtq_{0}_running WHERE key=in_key RETURNING * INTO task;
+   IF task.max_retries IS NULL OR task.retried < task.max_retries THEN
+      INSERT INTO pgtq_{0}_scheduled (key, not_before, task, retried,
+                                      max_retries)
+      VALUES (task.key,
+              (now() at time zone 'utc') +
+                (INTERVAL '1 second' * random() * task.retried),
+              task.task,
+              (task.retried + 1),
+              task.max_retries);
+    ELSE
+      INSERT INTO pgtq_{0}_failed (key, task, retries, max_retries)
+      VALUES (task.key,
+              task.task,
+              task.retries,
+              task.max_retries);
+    END IF;
+
     NOTIFY pgtq_{0}_scheduled_channel;
 END;
 $$ LANGUAGE plpgsql;
